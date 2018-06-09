@@ -1,0 +1,6 @@
+framework module Pods_BLEtest {
+  umbrella header "Pods-BLEtest-umbrella.h"
+
+  export *
+  module * { export * }
+}
