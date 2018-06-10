@@ -26,13 +26,13 @@ PODS:
   - RxBluetoothKit (5.1.0):
     - RxSwift (~> 4.0)
   - RxSwift (4.1.2)
-  - SwiftyJSON (2.4.0)
+  - SwiftyJSON (4.1.0)
 
 DEPENDENCIES:
   - AFNetworking (~> 2.6)
   - ORStackView (~> 3.0)
   - RxBluetoothKit
-  - SwiftyJSON (~> 2.3)
+  - SwiftyJSON (~> 4.0)
 
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
@@ -49,8 +49,8 @@ SPEC CHECKSUMS:
   ORStackView: a1bb52748cd0ae29891c140baf22ff8972fb363c
   RxBluetoothKit: a86ac599e8019f1392e86b3c0f147fd2b936df94
   RxSwift: e49536837d9901277638493ea537394d4b55f570
-  SwiftyJSON: 96918c1bf505efa50c4f72957018dd3452090c9c
+  SwiftyJSON: c29297daf073d2aa016295d5809cdd68045c39b3
 
-PODFILE CHECKSUM: 7a7acc8b86ae3c9d1ba337a590c8f2d6a8e66b8c
+PODFILE CHECKSUM: 6e6b09107fe22ee4400fbb908f6dbf68bbac8739
 
 COCOAPODS: 1.5.3
