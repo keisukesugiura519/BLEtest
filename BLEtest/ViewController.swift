@@ -21,54 +21,82 @@ class ViewController: UIViewController, CBPeripheralManagerDelegate, CBCentralMa
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        //  peripheralManagerを初期化
+        //  peripheralManager initialization
         peripheralManager = CBPeripheralManager(delegate: self, queue: nil, options: nil)
-        //  centralManagerの初期化
+        //  centralManager initialization
         centralManager = CBCentralManager(delegate: self, queue: nil)
         
     }
-
+    
+    private func publishservice() {
+        // Create service
+        let serviceUUID = CBUUID(string: "0000")
+        let service = CBMutableService(type: serviceUUID, primary: true)
+        
+        // Create characteristic
+        let characteristicUUID = CBUUID(string: "0001")
+        let characteristic = CBMutableCharacteristic(type: characteristicUUID,
+                                                     properties: .read,
+                                                     value: nil,
+                                                     permissions: .readable)
+        
+        // set a characteristic
+        service.characteristics = [characteristic]
+        // add a service
+        peripheralManager.add(service)
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    // ペリフェラルマネージャーが変化すると呼ばれる
+    // Peripheral manager is called to change
     func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
         print("state: \(peripheral.state)")
         
         switch peripheral.state {
         case .poweredOn:
-            // アドバタイズ開始
-            advstart()
+            // Advertisement start
+//            advstart()
+            // サービス登録開始
+            publishservice()
         default:
             break
         }
     }
     
+    // Call to add a service
+    func peripheralManager(_ peripheral: CBPeripheralManager, didAdd service: CBService, error: Error?) {
+        if let error = error {
+            print("サービス追加失敗 error:\(error)")
+            return
+        }
+        print("サービス追加成功")
+        // Start advertise
+        advstart()
+    }
+    
     // アドバタイズスタート用関数宣言
     private func advstart() {
-        print("advsrart")
-        // アドバタイズメントデータを作成する
+        // Advertisement data create
         let advData = [CBAdvertisementDataLocalNameKey: "Test Device"]
-        // アドバタイズスタート
+        // Advertisement start
         peripheralManager.startAdvertising(advData)
-        advBtn.setTitle("STOP ADVERTISING", for: .normal) // ボタンタイトル変更
+        advBtn.setTitle("STOP ADVERTISING", for: .normal) // advBtn title change
     }
     
     private func advstop() {
-        // アドバタイズストップ
+        // Advertise stoping
         peripheralManager.stopAdvertising()
-        advBtn.setTitle("START ADVERTISING", for: .normal) // ボタンタイトル変更
+        advBtn.setTitle("START ADVERTISING", for: .normal) // advBtn title change
     }
     
-    // ペリフェラルマネージャーの状態が変化すると呼ばれる
+    // Peripheral manager is called to change
     func peripheralManagerDidStartAdvertising(_ peripheral: CBPeripheralManager, error: Error?) {
         if let error = error {
-            advlabel.text = "ERROR"
             print("アドバタイズ開始失敗! error: \(error)")
             return
         } else {
-            advlabel.text = "SUCCESS"
             print("アドバタイズ開始成功！")
         }
     }
@@ -83,17 +111,69 @@ class ViewController: UIViewController, CBPeripheralManagerDelegate, CBCentralMa
     
     private var isScanning = false
     private var centralManager: CBCentralManager!
+    private var peripheral: CBPeripheral!
     
-    // セントラルマネージャーの状態が変化したら呼ばれる
+    // CentralManager is called to change
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         print("state: \(central.state)")
         
     }
     
-    // 周辺にあるデバイスを発見する
+    // Discover neighboring device
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         print("発見したBLEデバイス: \(peripheral)")
-        scnlabel.text = "BLEDevice get!"
+        
+        if let name = peripheral.name, name.hasPrefix("iPad (2)") {
+            self.peripheral = peripheral
+            centralManager.connect(peripheral,options: nil)
+        }
+    }
+    // It is called a successful connection with peripheral
+    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        print("接続成功")
+        
+        scnlabel.text = "iPad(2)に接続しました。"
+        
+        // サービス探索結果を受け取るためのデリゲートをセット
+        peripheral.delegate = self as? CBPeripheralDelegate
+        // サービス探索開始
+        peripheral.discoverServices(nil)
+    }
+    
+    // peripheralとの接続が失敗すると呼ばれる
+    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        print("接続失敗")
+    }
+    
+    // サービス発見時に呼ばれる
+    func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
+        if let error = error {
+            print("エラー: \(error)")
+            return
+        }
+        
+        guard let services = peripheral.services , services.count > 0 else {
+            print("No services")
+            return
+        }
+        print("\(services.count)個のサービスを発見しました　\(services)")
+        
+        for service in services {
+            // キャラクタリスティック探索開始
+            peripheral.discoverCharacteristics(nil, for: service)
+        }
+    }
+    
+    // キャラクタリスティック発見時に呼ばれる
+    func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?)
+    {
+        if let error = error {
+            print("エラー: \(error)")
+            return
+        }
+        
+        let characteristics = service.characteristics
+        print("\(String(describing: characteristics?.count)) 個のキャラクタリスティックを発見 \(String(describing: characteristics))")
     }
     
     @IBAction func scnBtnTapped(sender: UIButton) {
@@ -110,4 +190,5 @@ class ViewController: UIViewController, CBPeripheralManagerDelegate, CBCentralMa
     
     
 }
+
 
