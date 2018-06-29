@@ -28,13 +28,14 @@ class ViewController: UIViewController, CBPeripheralManagerDelegate, CBCentralMa
         
     }
     
+    
     private func publishservice() {
         // Create service
-        let serviceUUID = CBUUID(string: "0000")
+        let serviceUUID = CBUUID(string: "E371F980-C783-4BE7-84B6-65A71748F31A")
         let service = CBMutableService(type: serviceUUID, primary: true)
         
         // Create characteristic
-        let characteristicUUID = CBUUID(string: "0001")
+        let characteristicUUID = CBUUID(string: "AA2C6674-A021-42CF-A8F2-6EBBC7EC93D6")
         let characteristic = CBMutableCharacteristic(type: characteristicUUID,
                                                      properties: .read,
                                                      value: nil,
@@ -56,8 +57,6 @@ class ViewController: UIViewController, CBPeripheralManagerDelegate, CBCentralMa
         
         switch peripheral.state {
         case .poweredOn:
-            // Advertisement start
-//            advstart()
             // サービス登録開始
             publishservice()
         default:
@@ -68,10 +67,10 @@ class ViewController: UIViewController, CBPeripheralManagerDelegate, CBCentralMa
     // Call to add a service
     func peripheralManager(_ peripheral: CBPeripheralManager, didAdd service: CBService, error: Error?) {
         if let error = error {
-            print("サービス追加失敗 error:\(error)")
+            print("Faild service addition error:\(error)")
             return
         }
-        print("サービス追加成功")
+        print("Successful service addition")
         // Start advertise
         advstart()
     }
@@ -128,27 +127,28 @@ class ViewController: UIViewController, CBPeripheralManagerDelegate, CBCentralMa
             centralManager.connect(peripheral,options: nil)
         }
     }
+    
     // It is called a successful connection with peripheral
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-        print("接続成功")
+        print("Connection success")
         
-        scnlabel.text = "iPad(2)に接続しました。"
+        scnlabel.text = "iPad(2) connected"
         
         // サービス探索結果を受け取るためのデリゲートをセット
         peripheral.delegate = self as? CBPeripheralDelegate
         // サービス探索開始
-        peripheral.discoverServices(nil)
+        peripheral.discoverServices([CBUUID(string: "00FF")])
     }
     
     // peripheralとの接続が失敗すると呼ばれる
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-        print("接続失敗")
+        print("Connection Failed")
     }
     
-    // サービス発見時に呼ばれる
+    // Called when you find a peripheral
     func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
         if let error = error {
-            print("エラー: \(error)")
+            print("error: \(error)")
             return
         }
         
@@ -164,7 +164,7 @@ class ViewController: UIViewController, CBPeripheralManagerDelegate, CBCentralMa
         }
     }
     
-    // キャラクタリスティック発見時に呼ばれる
+    // Called when you find a characteristics
     func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?)
     {
         if let error = error {
@@ -176,6 +176,7 @@ class ViewController: UIViewController, CBPeripheralManagerDelegate, CBCentralMa
         print("\(String(describing: characteristics?.count)) 個のキャラクタリスティックを発見 \(String(describing: characteristics))")
     }
     
+    // ScanButton Tapped
     @IBAction func scnBtnTapped(sender: UIButton) {
         if !isScanning {
             isScanning = true
